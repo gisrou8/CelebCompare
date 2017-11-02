@@ -20,5 +20,13 @@ public class MainActivity extends AppCompatActivity {
     private void Fonts(){
         //FONT
         Typeface custom_font = Typeface.createFromAsset(getAssets(),  "fonts/topmodern.ttf");
+
+        //Textfield Username
+        TextView txtGender = (TextView)findViewById(R.id.txtChooseGender);
+        txtGender.setTypeface(custom_font);
+
+        //Textfield Password
+        TextView txtPicture = (TextView)findViewById(R.id.txtChoosePicture);
+        txtPicture.setTypeface(custom_font);
     }
 }
