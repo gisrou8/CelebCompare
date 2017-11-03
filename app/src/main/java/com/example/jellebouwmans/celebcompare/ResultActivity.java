@@ -1,5 +1,7 @@
 package com.example.jellebouwmans.celebcompare;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +14,7 @@ public class ResultActivity extends AppCompatActivity {
     public TextView txtCeleb;
     public ImageView imgCeleb;
     public ImageView imgYou;
+    private Bitmap imageBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +24,11 @@ public class ResultActivity extends AppCompatActivity {
         txtCeleb = (TextView) findViewById(R.id.txtCeleb);
         imgCeleb = (ImageView) findViewById(R.id.imgCeleb);
         imgYou = (ImageView) findViewById(R.id.imgYou);
+
+        byte[] byteArray = getIntent().getByteArrayExtra("image");
+        imageBitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+
+        imgYou.setImageBitmap(imageBitmap);
     }
 
     private void Fonts(){
@@ -38,5 +46,4 @@ public class ResultActivity extends AppCompatActivity {
         Button btnNewPhoto = (Button)findViewById(R.id.btnNewPhoto);
         btnNewPhoto.setTypeface(custom_font);
     }
-
 }
