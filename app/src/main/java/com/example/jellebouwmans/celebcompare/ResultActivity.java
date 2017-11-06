@@ -15,6 +15,7 @@ public class ResultActivity extends AppCompatActivity {
     public ImageView imgCeleb;
     public ImageView imgYou;
     private Bitmap imageBitmap;
+    private String gender = "unkown";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +28,8 @@ public class ResultActivity extends AppCompatActivity {
 
         byte[] byteArray = getIntent().getByteArrayExtra("image");
         imageBitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+
+        gender = getIntent().getStringExtra("gender");
 
         imgYou.setImageBitmap(imageBitmap);
     }

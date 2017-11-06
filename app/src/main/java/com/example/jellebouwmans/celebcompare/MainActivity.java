@@ -1,23 +1,36 @@
 package com.example.jellebouwmans.celebcompare;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int PICK_IMAGE = 2;
     Bitmap imageBitmap;
+
+    ImageButton imgbtnMale;
+    ImageButton imgbtnFemale;
+
+    String gender = "unkown";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Fonts();
+
+        imgbtnFemale = (ImageButton) findViewById(R.id.imgbtnFemale);
+        imgbtnMale = (ImageButton) findViewById(R.id.imgbtnMale);
+
+        imgbtnFemale.setBackgroundResource(R.drawable.genderfemale);
+        imgbtnMale.setBackgroundResource(R.drawable.gendermale);
     }
 
     private void Fonts(){
@@ -41,7 +60,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void btnCameraClick(View v) {
-        dispatchTakePictureIntent();
+        if(gender != "unkown"){
+            dispatchTakePictureIntent();
+        }
+        else{
+            AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
+            dlgAlert.setMessage("Select gender first");
+            dlgAlert.setTitle("Gender");
+            dlgAlert.setPositiveButton("OK", null);
+            dlgAlert.setCancelable(false);
+            dlgAlert.create().show();
+        }
     }
 
     private void dispatchTakePictureIntent() {
@@ -62,8 +91,49 @@ public class MainActivity extends AppCompatActivity {
 
             Intent startNewActivity = new Intent(this, ResultActivity.class);
             startNewActivity.putExtra("image",byteArray);
+            startNewActivity.putExtra("gender", gender);
 
             startActivity(startNewActivity);
         }
+        else if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            Uri imageUri = data.getData();
+            InputStream imageStream = null;
+            try {
+                imageStream = getContentResolver().openInputStream(imageUri);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            imageBitmap = BitmapFactory.decodeStream(imageStream);
+
+            //Convert to byte array
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+
+            Intent startNewActivity = new Intent(this, ResultActivity.class);
+            startNewActivity.putExtra("image",byteArray);
+            startNewActivity.putExtra("gender", gender);
+
+            startActivity(startNewActivity);
+        }
+    }
+
+    public void btnMaleClick(View v){
+        imgbtnMale.setBackgroundResource(R.drawable.gendermaleclick);
+        imgbtnFemale.setBackgroundResource(R.drawable.genderfemale);
+        gender = "Male";
+    }
+
+    public void btnFemaleClick(View v){
+        imgbtnFemale.setBackgroundResource(R.drawable.genderfemaleclick);
+        imgbtnMale.setBackgroundResource(R.drawable.gendermale);
+        gender = "Female";
+    }
+
+    public void btnFileClick(View v) {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
     }
 }
