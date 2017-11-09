@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
+
 public class ResultActivity extends AppCompatActivity {
 
     public TextView txtCeleb;
@@ -26,8 +28,9 @@ public class ResultActivity extends AppCompatActivity {
         imgCeleb = (ImageView) findViewById(R.id.imgCeleb);
         imgYou = (ImageView) findViewById(R.id.imgYou);
 
-        byte[] byteArray = getIntent().getByteArrayExtra("image");
-        imageBitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        String filepath = getIntent().getStringExtra("image");
+        File file = new File(filepath);
+        imageBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
 
         gender = getIntent().getStringExtra("gender");
 
