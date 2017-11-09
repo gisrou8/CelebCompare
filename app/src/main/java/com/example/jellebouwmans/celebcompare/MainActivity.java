@@ -16,14 +16,11 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-<<<<<<< HEAD
 import KairosApi.Kairos;
-=======
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
->>>>>>> 6f74f0ab96e988af37c86b64527431f68439c60d
 
 public class MainActivity extends AppCompatActivity {
 
