@@ -9,16 +9,23 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import KairosApi.Kairos;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,12 +47,20 @@ public class MainActivity extends AppCompatActivity {
     byte[] imagebyteArray;
     Kairos kairos = new Kairos(this);
     String gender = "unkown";
+    JSONArray malecelebs;
+    JSONArray femalecelebs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
-        kairos.getAllFromGallery();
+        try {
+
+            getFromGalleryFemale();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Fonts();
 
         imgbtnFemale = (ImageButton) findViewById(R.id.imgbtnFemale);
@@ -52,9 +68,15 @@ public class MainActivity extends AppCompatActivity {
 
         imgbtnFemale.setBackgroundResource(R.drawable.genderfemale);
         imgbtnMale.setBackgroundResource(R.drawable.gendermale);
+        try {
+            getFromGalleryMale();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.FROYO)
     private String encodeImage(byte[] b)
     {
         String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
@@ -144,7 +166,12 @@ public class MainActivity extends AppCompatActivity {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             byte[] byteArray = stream.toByteArray();
-            kairos.verifyImage("Brad Pitt", encodeImage(byteArray));
+            //kairos.verifyImage("Brad Pitt", encodeImage(byteArray));
+            try {
+                verify(encodeImage(byteArray));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             String filePath = tempFileImage(this, imageBitmap, "Angelina");
 
             Intent startNewActivity = new Intent(this, ResultActivity.class);
@@ -153,6 +180,79 @@ public class MainActivity extends AppCompatActivity {
 
             startActivity(startNewActivity);
         }
+    }
+
+    public void verify(final String encodeimage) throws JSONException {
+        if(gender.equals("Male"))
+        {
+            for(int i = 0; i <= malecelebs.length(); i++)
+            {
+                kairos.verifyImage(malecelebs.getString(i), encodeimage, "MyGalleryMale");
+                final int finalI = i;
+                new java.util.Timer().schedule(
+                        new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                try {
+                                    if (kairos.verifyImage(malecelebs.getString(finalI), encodeimage, "MyGalleryMale") != null) {
+                                        Double[] condition = kairos.verifyImage(malecelebs.getString(finalI), encodeimage, "MyGalleryMale");
+                                        String hallo = "";
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        },
+                        3000
+                );
+            }
+        }
+    }
+
+
+    public void getFromGalleryMale() throws InterruptedException {
+
+
+        kairos.getAllFromGallery();
+
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        if (kairos.getMalecelebs() != null) {
+                            malecelebs = kairos.getMalecelebs();
+
+                        }
+
+                    }
+                },
+                3000
+        );
+
+
+    }
+
+
+    public void getFromGalleryFemale() throws InterruptedException {
+
+        kairos.getAllFromGalleryFemale();
+
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        if (kairos.getFemalecelebs() != null) {
+                            femalecelebs = kairos.getFemalecelebs();
+
+                        }
+
+                    }
+                },
+                3000
+        );
+
+
     }
 
     public void btnMaleClick(View v){

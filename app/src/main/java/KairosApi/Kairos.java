@@ -17,8 +17,10 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 
 import static android.app.PendingIntent.getActivity;
+import static java.lang.Thread.sleep;
 
 /**
  * Created by gisro on 8-11-2017.
@@ -32,12 +34,26 @@ public class Kairos {
     private String deleteFromGalleryUrl = "https://api.kairos.com/gallery/remove_subject";
     private final String imageUrl = "https://i.pinimg.com/736x/89/d6/d7/89d6d73d82e497cac0be0246d39f0ed4--square-face-shapes-square-faces.jpg";
     Context context;
-    JSONArray celebs;
+
+    JSONArray malecelebs;
+    JSONArray femalecelebs;
+    boolean finished;
 
     public Kairos(Context context)
     {
         this.context = context;
 
+    }
+
+
+    public JSONArray getMalecelebs()
+    {
+        return malecelebs;
+    }
+
+    public JSONArray getFemalecelebs()
+    {
+        return femalecelebs;
     }
 
 
@@ -94,15 +110,69 @@ public class Kairos {
     }
 
 
-    public void getAllFromGallery()
-    {
+    public void getAllFromGallery() throws InterruptedException {
+            StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject jsonResponse = new JSONObject(response);
+                                malecelebs = jsonResponse.getJSONArray("subject_ids");
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                        }
+                    }
+            ) {
+
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    JSONObject params = new JSONObject();
+                    // the POST parameters:
+                    try {
+                        params.put("gallery_name", "MyGalleryMale");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    return params.toString().getBytes();
+                }
+
+
+
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("Content-Type", "application/json");
+                    params.put("app_id", "6d5bf9d5");
+                    params.put("app_key", "b840b0b3af45f1f919c29da422c3aefe");
+                    return params;
+                }
+
+
+            };
+
+            Request request = Volley.newRequestQueue(context).add(postRequest);
+
+
+
+    }
+
+    public void getAllFromGalleryFemale() throws InterruptedException {
         StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
-                            celebs = jsonResponse.getJSONArray("subject_ids");
+                            femalecelebs = jsonResponse.getJSONArray("subject_ids");
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -121,7 +191,7 @@ public class Kairos {
                 JSONObject params = new JSONObject();
                 // the POST parameters:
                 try {
-                    params.put("gallery_name", "MyGalleryMale");
+                    params.put("gallery_name", "MyGallery");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -143,6 +213,9 @@ public class Kairos {
         };
 
         Request request = Volley.newRequestQueue(context).add(postRequest);
+
+
+
     }
 
 
@@ -208,7 +281,7 @@ public class Kairos {
 
 
 
-    public Double[] verifyImage(final String celeb, final String image)
+    public Double[] verifyImage(final String celeb, final String image, final String gallery)
     {
         final Double[] confidence = new Double[1];
         StringRequest postRequest = new StringRequest(Request.Method.POST, verifyImageUrl,
@@ -241,7 +314,7 @@ public class Kairos {
                 // the POST parameters:
                 try {
                     params.put("image", image);
-                    params.put("gallery_name", "MyGallery");
+                    params.put("gallery_name", gallery);
                     params.put("subject_id", celeb);
 
                 } catch (JSONException e) {

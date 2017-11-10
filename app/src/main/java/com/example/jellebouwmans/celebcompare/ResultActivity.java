@@ -11,9 +11,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-<<<<<<< HEAD
+
 import java.io.File;
-=======
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -23,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import KairosApi.Kairos;
->>>>>>> 2361bb54464d78d8e8367bf7e7a674de5b8089c8
+
 
 public class ResultActivity extends AppCompatActivity {
 
