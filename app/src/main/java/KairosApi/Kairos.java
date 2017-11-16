@@ -1,6 +1,7 @@
 package KairosApi;
 
 import android.content.Context;
+import android.os.StrictMode;
 
 import com.android.volley.Request;
 
@@ -111,6 +112,7 @@ public class Kairos {
 
 
     public void getAllFromGallery() throws InterruptedException {
+            ignoreThread ();
             StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
                     new Response.Listener<String>() {
                         @Override
@@ -165,6 +167,7 @@ public class Kairos {
     }
 
     public void getAllFromGalleryFemale() throws InterruptedException {
+        ignoreThread ();
         StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
                 new Response.Listener<String>() {
                     @Override
@@ -172,6 +175,7 @@ public class Kairos {
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
                             femalecelebs = jsonResponse.getJSONArray("subject_ids");
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -277,7 +281,10 @@ public class Kairos {
     }
 
 
-
+    public void ignoreThread (){
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+    }
 
 
 

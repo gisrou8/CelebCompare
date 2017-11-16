@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     String gender = "unkown";
     JSONArray malecelebs;
     JSONArray femalecelebs;
+    String naam = "";
+    Double percent = 0d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,11 +58,17 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         try {
-
             getFromGalleryFemale();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        try {
+            getFromGalleryMale();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Fonts();
 
         imgbtnFemale = (ImageButton) findViewById(R.id.imgbtnFemale);
@@ -68,11 +76,6 @@ public class MainActivity extends AppCompatActivity {
 
         imgbtnFemale.setBackgroundResource(R.drawable.genderfemale);
         imgbtnMale.setBackgroundResource(R.drawable.gendermale);
-        try {
-            getFromGalleryMale();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
 
@@ -150,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
             startNewActivity.putExtra("image",imagebyteArray);
             startNewActivity.putExtra("gender", gender);
 
+            //startNewActivity.putExtra("naam", naam);
+            //startNewActivity.putExtra("percent", percent);
+
             startActivity(startNewActivity);
         }
         else if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK) {
@@ -166,93 +172,62 @@ public class MainActivity extends AppCompatActivity {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             byte[] byteArray = stream.toByteArray();
-            //kairos.verifyImage("Brad Pitt", encodeImage(byteArray));
             try {
                 verify(encodeImage(byteArray));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            String filePath = tempFileImage(this, imageBitmap, "Angelina");
+
+
 
             Intent startNewActivity = new Intent(this, ResultActivity.class);
-            startNewActivity.putExtra("image",filePath);
-            startNewActivity.putExtra("gender", gender);
+            startNewActivity.putExtra("naam", naam);
+            startNewActivity.putExtra("percent", percent);
 
             startActivity(startNewActivity);
         }
     }
 
-    public void verify(final String encodeimage) throws JSONException {
+    public Double[] verify(final String encodeimage) throws JSONException {
+        Double[] condition = null;
+
         if(gender.equals("Male"))
         {
             for(int i = 0; i <= malecelebs.length(); i++)
             {
-                kairos.verifyImage(malecelebs.getString(i), encodeimage, "MyGalleryMale");
-                final int finalI = i;
-                new java.util.Timer().schedule(
-                        new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (kairos.verifyImage(malecelebs.getString(finalI), encodeimage, "MyGalleryMale") != null) {
-                                        Double[] condition = kairos.verifyImage(malecelebs.getString(finalI), encodeimage, "MyGalleryMale");
-                                        String hallo = "";
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                try {
+                    condition = kairos.verifyImage(malecelebs.getString(i), encodeimage, "MyGalleryMale");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
-                            }
-                        },
-                        3000
-                );
+                //Delay hier ////////////////////////////////////////////////////
+
+                // Pak de hoogste uit de lijst
+                if (condition[0] > percent){
+                    percent = condition[0];
+                    naam = malecelebs.getString(i);
+                }
             }
+
         }
+        return condition;
     }
 
 
     public void getFromGalleryMale() throws InterruptedException {
-
-
         kairos.getAllFromGallery();
 
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        if (kairos.getMalecelebs() != null) {
-                            malecelebs = kairos.getMalecelebs();
-
-                        }
-
-                    }
-                },
-                3000
-        );
-
-
+        //Delay hier //////////////////////////////////////////
+        malecelebs = kairos.getMalecelebs();
     }
-
 
     public void getFromGalleryFemale() throws InterruptedException {
 
         kairos.getAllFromGalleryFemale();
 
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        if (kairos.getFemalecelebs() != null) {
-                            femalecelebs = kairos.getFemalecelebs();
-
-                        }
-
-                    }
-                },
-                3000
-        );
-
-
+        //Delay hier //////////////////////////////////////////
+        femalecelebs = kairos.getFemalecelebs();
     }
 
     public void btnMaleClick(View v){
