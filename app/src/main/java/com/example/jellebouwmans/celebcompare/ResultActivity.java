@@ -33,7 +33,7 @@ public class ResultActivity extends AppCompatActivity {
     private Bitmap imageBitmap;
 
     private String celebNaam = "";
-    private int celebPercent = 0;
+    private double celebPercent = 0;
 
     Map<String, String> celebPhotos = new HashMap<>();
 
@@ -47,12 +47,12 @@ public class ResultActivity extends AppCompatActivity {
         imgYou = (ImageView) findViewById(R.id.imgYou);
         txtPercent = (TextView) findViewById(R.id.txtPercent);
 
-        String filepath = getIntent().getStringExtra("image");
-        File file = new File(filepath);
-        imageBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+        //String filepath = getIntent().getStringExtra("image");
+        //File file = new File(filepath);
+        //imageBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
 
         celebNaam = getIntent().getStringExtra("naam");
-        celebPercent = getIntent().getIntExtra("percent", 0);
+        celebPercent = getIntent().getDoubleExtra("percent", 0);
 
         imgYou.setImageBitmap(imageBitmap);
 

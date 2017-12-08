@@ -26,8 +26,11 @@ import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import KairosApi.Kairos;
+import KairosApi.KairosCallback;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -65,6 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             getFromGalleryMale();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -149,14 +158,22 @@ public class MainActivity extends AppCompatActivity {
             imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             imagebyteArray = stream.toByteArray();
 
-            Intent startNewActivity = new Intent(this, ResultActivity.class);
-            startNewActivity.putExtra("image",imagebyteArray);
-            startNewActivity.putExtra("gender", gender);
+            try {
+                verify(encodeImage(imagebyteArray));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+//            Intent startNewActivity = new Intent(this, ResultActivity.class);
+//            startNewActivity.putExtra("image",imagebyteArray);
+//            startNewActivity.putExtra("gender", gender);
 
             //startNewActivity.putExtra("naam", naam);
             //startNewActivity.putExtra("percent", percent);
 
-            startActivity(startNewActivity);
+            //startActivity(startNewActivity);
         }
         else if (requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK) {
             Uri imageUri = data.getData();
@@ -176,58 +193,129 @@ public class MainActivity extends AppCompatActivity {
                 verify(encodeImage(byteArray));
             } catch (JSONException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
 
 
-            Intent startNewActivity = new Intent(this, ResultActivity.class);
-            startNewActivity.putExtra("naam", naam);
-            startNewActivity.putExtra("percent", percent);
-
-            startActivity(startNewActivity);
         }
     }
 
-    public Double[] verify(final String encodeimage) throws JSONException {
-        Double[] condition = null;
+    public Double[] verify(final String encodeimage) throws JSONException, InterruptedException {
+        final Double[] condition = new Double[1];
+        final int[] count = {0};
+
 
         if(gender.equals("Male"))
         {
             for(int i = 0; i <= malecelebs.length(); i++)
             {
                 try {
-                    condition = kairos.verifyImage(malecelebs.getString(i), encodeimage, "MyGalleryMale");
+                    final Intent startNewActivity = new Intent(this, ResultActivity.class);
+
+                    kairos.verifyImage(malecelebs.getString(i), encodeimage, "MyGalleryMale", new KairosCallback(){
+                        @Override
+                        public void onSuccess(JSONObject result) throws JSONException {
+                            JSONArray jsonarray = result.getJSONArray("images");
+                            JSONObject network = jsonarray.getJSONObject(0);
+                            JSONObject transaction = network.getJSONObject("transaction");
+                            condition[0] = transaction.getDouble("confidence");
+
+                            count[0]++;
+                            // Pak de hoogste uit de lijst
+                            if (condition[0] > percent){
+                                percent = condition[0];
+                                naam = transaction.getString("subject_id");
+                            }
+
+                            if(count[0] == malecelebs.length())
+                            {
+
+                                startNewActivity.putExtra("naam", naam);
+                                startNewActivity.putExtra("percent", percent);
+
+                                startActivity(startNewActivity);
+                            }
+
+                        }
+                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-                //Delay hier ////////////////////////////////////////////////////
+                Thread.sleep(1000);
 
-                // Pak de hoogste uit de lijst
-                if (condition[0] > percent){
-                    percent = condition[0];
-                    naam = malecelebs.getString(i);
-                }
+
+
+
             }
 
+        }
+        else if(gender.equals("Female")) {
+            for (int i = 0; i <= femalecelebs.length(); i++) {
+                try {
+                    final Intent startNewActivity = new Intent(this, ResultActivity.class);
+
+                    kairos.verifyImage(femalecelebs.getString(i), encodeimage, "MyGallery", new KairosCallback() {
+                        @Override
+                        public void onSuccess(JSONObject result) throws JSONException {
+                            JSONArray jsonarray = result.getJSONArray("images");
+                            JSONObject network = jsonarray.getJSONObject(0);
+                            JSONObject transaction = network.getJSONObject("transaction");
+                            condition[0] = transaction.getDouble("confidence");
+
+                            count[0]++;
+                            // Pak de hoogste uit de lijst
+                            if (condition[0] > percent) {
+                                percent = condition[0];
+                                naam = transaction.getString("subject_id");
+                            }
+
+                            if (count[0] == malecelebs.length()) {
+
+                                startNewActivity.putExtra("naam", naam);
+                                startNewActivity.putExtra("percent", percent);
+
+                                startActivity(startNewActivity);
+                            }
+
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                Thread.sleep(1000);
+            }
         }
         return condition;
     }
 
 
     public void getFromGalleryMale() throws InterruptedException {
-        kairos.getAllFromGallery();
+        kairos.getAllFromGallery(new KairosCallback(){
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+                malecelebs = result.getJSONArray("subject_ids");
+            }
+        });
 
         //Delay hier //////////////////////////////////////////
-        malecelebs = kairos.getMalecelebs();
+       // malecelebs = kairos.getMalecelebs();
     }
 
     public void getFromGalleryFemale() throws InterruptedException {
 
-        kairos.getAllFromGalleryFemale();
+        kairos.getAllFromGalleryFemale(new KairosCallback(){
+            @Override
+            public void onSuccess(JSONObject result) throws JSONException {
+                femalecelebs = result.getJSONArray("subject_ids");
+            }
+        });;
 
         //Delay hier //////////////////////////////////////////
-        femalecelebs = kairos.getFemalecelebs();
+        //femalecelebs = kairos.getFemalecelebs();
     }
 
     public void btnMaleClick(View v){

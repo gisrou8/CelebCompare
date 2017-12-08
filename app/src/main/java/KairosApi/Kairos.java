@@ -111,15 +111,16 @@ public class Kairos {
     }
 
 
-    public void getAllFromGallery() throws InterruptedException {
+    public void getAllFromGallery(final KairosCallback callback) throws InterruptedException {
             ignoreThread ();
             StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
                             try {
-                                JSONObject jsonResponse = new JSONObject(response);
-                                malecelebs = jsonResponse.getJSONArray("subject_ids");
+                                  JSONObject jsonResponse = new JSONObject(response);
+//
+                                  callback.onSuccess(jsonResponse);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -166,7 +167,7 @@ public class Kairos {
 
     }
 
-    public void getAllFromGalleryFemale() throws InterruptedException {
+    public void getAllFromGalleryFemale(final KairosCallback callback) throws InterruptedException {
         ignoreThread ();
         StringRequest postRequest = new StringRequest(Request.Method.POST, getAllFromGalleryurl,
                 new Response.Listener<String>() {
@@ -174,6 +175,7 @@ public class Kairos {
                     public void onResponse(String response) {
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
+                            callback.onSuccess(jsonResponse);
                             femalecelebs = jsonResponse.getJSONArray("subject_ids");
 
 
@@ -288,7 +290,7 @@ public class Kairos {
 
 
 
-    public Double[] verifyImage(final String celeb, final String image, final String gallery)
+    public Double[] verifyImage(final String celeb, final String image, final String gallery, final KairosCallback callback)
     {
         final Double[] confidence = new Double[1];
         StringRequest postRequest = new StringRequest(Request.Method.POST, verifyImageUrl,
@@ -297,10 +299,8 @@ public class Kairos {
                     public void onResponse(String response) {
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
-                            JSONArray jsonarray = jsonResponse.getJSONArray("images");
-                            JSONObject network = jsonarray.getJSONObject(0);
-                            JSONObject transaction = network.getJSONObject("transaction");
-                            confidence[0] = transaction.getDouble("confidence");
+                            callback.onSuccess(jsonResponse);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
